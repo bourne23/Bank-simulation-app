@@ -14,15 +14,14 @@ import java.util.UUID;
 @Component
 public class AccountServiceImpl implements AccountService {
 
-    AccountRepository accountRepository;
+    AccountRepository accountRepository;   // need DB bean to save account to >> add @component
 
-
-    public AccountServiceImpl(AccountRepository accountRepository) {
+    public AccountServiceImpl(AccountRepository accountRepository) {  // create constructor to @autowire
         this.accountRepository = accountRepository;
     }
 
-
-    @Override   //1. create new account,
+    //1. Create account - Save new account in DB, and return account
+    @Override
     public Account createAccount(BigDecimal balance, Date creationDate, AccountType accountType, Long userId) {
 
         Account account = Account.builder().id(UUID.randomUUID())

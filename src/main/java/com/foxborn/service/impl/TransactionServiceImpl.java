@@ -7,7 +7,9 @@ import com.foxborn.exception.BalanceNotSufficientException;
 import com.foxborn.model.Account;
 import com.foxborn.model.Transaction;
 import com.foxborn.repository.AccountRepository;
+import com.foxborn.repository.TransactionRepository;
 import com.foxborn.service.TransactionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -19,8 +21,16 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
     AccountRepository accountRepository;  // Injecting dependency - add @Component and constructor to automatically @autowire
 
+    TransactionRepository transactionRepository; // need a bean
+    Transaction transaction; // create transaction
+
+    @Autowired
     public TransactionServiceImpl(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
+    }
+
+    public TransactionServiceImpl(TransactionRepository transactionRepository) {
+        this.transactionRepository = transactionRepository;
     }
 
     /**
@@ -29,13 +39,25 @@ public class TransactionServiceImpl implements TransactionService {
      * - 1. validate sender and receiver exists, is it null, are they same id's, dont exist in DB>
      * -2. Check ownership of accounts, is two users or one user making transfer
      * -3. Execute transfer
+     * -4. after validations completed, and money transferred, we need to create Transaction object and save/return it
+     *
      */
     @Override
     public Transaction makeTransfer(Account sender, Account receiver, BigDecimal amount, Date creationDate, String message) {
         validateAccount(sender, receiver);
         checkAccountOwnership(sender, receiver);
-        executeBalanceAndUpdateIfRequired(amount, sender, receiver); // if the amount that sender is sending
-        return null;
+        executeBalanceAndUpdateIfRequired(amount, sender, receiver);
+
+        return transactionRepository.saveTransaction(transaction);
+    }
+
+    /**
+     * Get All transactions, after transfer was made
+     * @return
+     */
+    @Override
+    public List<Transaction> findAllTransactions() {
+        return transactionRepository.findAllTransactions();
     }
 
 
@@ -70,6 +92,12 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+    /**
+     * Check if sender has enough balance in their account, remove balance and set new balance for their account. Add and Set new balance for receiver account.
+     * @param amount
+     * @param sender
+     * @param receiver
+     */
     private void executeBalanceAndUpdateIfRequired(BigDecimal amount, Account sender, Account receiver) {
         if (checkSenderBalance(sender, amount)) {
             sender.setBalance(sender.getBalance().subtract(amount));
@@ -77,28 +105,32 @@ public class TransactionServiceImpl implements TransactionService {
         } else {
             throw new BalanceNotSufficientException("Not enough balance in the account");
         }
-
     }
 
-    // Verify that sender has enough balance
+    // Verify that sender has enough balance. Subtract amount from sender balance, must be >= 0
     private boolean checkSenderBalance(Account sender, BigDecimal amount) {
         return sender.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) >= 0;
-
     }
 
     /**
-     * Find account by ID in the DB. Injected dependency AccountRepository
-     *
+     * Find account by ID in the DB, and return account. Injected dependency AccountRepository
      * @param id
      * @return
      */
     private Account findAccountByID(UUID id) {
         return accountRepository.findById(id);
-
     }
 
-    @Override
-    public List<Transaction> findAllTransactions() {
-        return null;
+    /**
+     * Find transaction by sender id, and reciever id, and return transaction
+     * @param sender
+     * @param receiver
+     * @return
+     */
+    public Transaction findTransactionByIDs(UUID sender, UUID receiver) {
+        return transactionRepository.findById(sender, receiver);
     }
+
+
+
 }
