@@ -1,2 +1,6 @@
-package com.foxborn.enums;public class AccountType {
+package com.foxborn.enums;
+
+public enum AccountType {
+
+    CHECKING, SAVINGS
 }
