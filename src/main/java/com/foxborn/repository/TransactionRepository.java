@@ -25,6 +25,7 @@ public class TransactionRepository {
      */
     public Transaction saveTransaction (Transaction transaction){
         transactionList.add(transaction);
+        System.out.println("transaction successful = " + transaction);
         return transaction;
     }
 

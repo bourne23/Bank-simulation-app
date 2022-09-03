@@ -22,7 +22,6 @@ public class TransactionServiceImpl implements TransactionService {
     AccountRepository accountRepository;  // Injecting dependency - add @Component and constructor to automatically @autowire
 
     TransactionRepository transactionRepository; // need a bean
-    Transaction transaction; // create transaction
 
     @Autowired
     public TransactionServiceImpl(AccountRepository accountRepository) {
@@ -36,7 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
     /**
      * Method makeTransfer()
      * To make transfer :
-     * - 1. validate sender and receiver exists, is it null, are they same id's, dont exist in DB>
+     * -1. Validate sender and receiver exists, is it null, are they same id's, dont exist in DB>
      * -2. Check ownership of accounts, is two users or one user making transfer
      * -3. Execute transfer
      * -4. after validations completed, and money transferred, we need to create Transaction object and save/return it
@@ -47,7 +46,9 @@ public class TransactionServiceImpl implements TransactionService {
         validateAccount(sender, receiver);
         checkAccountOwnership(sender, receiver);
         executeBalanceAndUpdateIfRequired(amount, sender, receiver);
-
+        // create transaction, use @allArgsConstructor
+        Transaction transaction = new Transaction(sender.getId(), receiver.getId(), amount, message, creationDate);
+        transactionRepository = new TransactionRepository();
         return transactionRepository.saveTransaction(transaction);
     }
 
