@@ -27,5 +27,5 @@ public interface TransactionService {
      */
     List <Transaction> findAllTransactions();
 
-
+    List<Transaction> lastTransactionsList();
 }

@@ -6,6 +6,7 @@ import com.foxborn.model.Account;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public interface AccountService {
 
@@ -13,6 +14,7 @@ public interface AccountService {
 
     List<Account> listAllAccounts();
 
+    void deleteAccount(UUID id);
 
     }
 

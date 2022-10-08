@@ -1,6 +1,4 @@
 package com.foxborn.repository;
-
-import com.foxborn.exception.BadRequestException;
 import com.foxborn.exception.RecordNotFoundException;
 import com.foxborn.model.Account;
 import org.springframework.stereotype.Component;

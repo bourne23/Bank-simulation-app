@@ -1,5 +1,6 @@
 package com.foxborn.service.impl;
 
+import com.foxborn.enums.AccountStatus;
 import com.foxborn.enums.AccountType;
 import com.foxborn.model.Account;
 import com.foxborn.repository.AccountRepository;
@@ -23,11 +24,9 @@ public class AccountServiceImpl implements AccountService {
     //1. Create account - Save new account in DB, and return account
     @Override
     public Account createAccount(BigDecimal balance, Date creationDate, AccountType accountType, Long userId) {
-
         Account account = Account.builder().id(UUID.randomUUID())
-                .userId(userId).accountType(accountType)
-                .balance(balance).creationDate(creationDate).build();
-
+                .userId(userId).accountType(accountType).balance(balance)
+                .creationDate(creationDate).accountStatus(AccountStatus.ACTIVE).build();
         //2. save and return as account
         return accountRepository.save(account);
     }
@@ -36,5 +35,14 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<Account> listAllAccounts() {
         return accountRepository.findAll();
+    }
+
+    @Override
+    public void deleteAccount(UUID id) {
+        //we need to find correct account based on id we have
+        //change status to DELETED
+        Account account = accountRepository.findById(id);
+        account.setAccountStatus(AccountStatus.DELETED);
+
     }
 }

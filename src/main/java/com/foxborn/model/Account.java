@@ -1,17 +1,16 @@
 package com.foxborn.model;
 
+import com.foxborn.enums.AccountStatus;
 import com.foxborn.enums.AccountType;
-import lombok.AllArgsConstructor;
+
 import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
-
 @Data
 @Builder
-@AllArgsConstructor
 public class Account {
 
     private UUID id;
@@ -19,8 +18,6 @@ public class Account {
     private AccountType accountType;
     private Date creationDate;
     private Long userId;
-
-
-
+    private AccountStatus accountStatus;
 
 }

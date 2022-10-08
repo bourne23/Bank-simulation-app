@@ -131,7 +131,12 @@ public class TransactionServiceImpl implements TransactionService {
     public Transaction findTransactionByIDs(UUID sender, UUID receiver) {
         return transactionRepository.findById(sender, receiver);
     }
+    @Override
+    public List<Transaction> lastTransactionsList() {
+        //we want to list latest 10 transaction
+        return transactionRepository.lastTransactions();
 
+    }
 
 
 }
