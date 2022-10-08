@@ -43,7 +43,7 @@
               <a th:if="${account.accountStatus.name()=='ACTIVE'}" class="btn btn-danger" th:href="@{/delete/{id}(id=${account.id})}">Delete</a>
               <a th:if="${account.accountStatus.name()=='DELETED'}" class="btn btn-danger disabled" th:href="@{/delete/{id}(id=${account.id})}" disabled>Delete</a>
             </td>
-            <td><a class="btn btn-success" href="#">Account Transaction</a></td>
+            <td><a class="btn btn-success" th:href="@{/transaction/{id}(id=${account.id})}">Account Transaction</a></td>
           </tr>
           </tbody>
         </table>

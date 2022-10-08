@@ -4,12 +4,13 @@ import com.foxborn.enums.AccountType;
 import com.foxborn.exception.AccountOwnershipException;
 import com.foxborn.exception.BadRequestException;
 import com.foxborn.exception.BalanceNotSufficientException;
+import com.foxborn.exception.UnderConstructionException;
 import com.foxborn.model.Account;
 import com.foxborn.model.Transaction;
 import com.foxborn.repository.AccountRepository;
 import com.foxborn.repository.TransactionRepository;
 import com.foxborn.service.TransactionService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -17,18 +18,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+
 @Component
 public class TransactionServiceImpl implements TransactionService {
+
+
+    @Value("${under_construction}")
+    private boolean underConstruction;
+
     AccountRepository accountRepository;  // Injecting dependency - add @Component and constructor to automatically @autowire
 
     TransactionRepository transactionRepository; // need a bean
 
-    @Autowired
-    public TransactionServiceImpl(AccountRepository accountRepository) {
+    public TransactionServiceImpl(AccountRepository accountRepository, TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
-    }
-
-    public TransactionServiceImpl(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
@@ -39,26 +42,62 @@ public class TransactionServiceImpl implements TransactionService {
      * -2. Check ownership of accounts, is two users or one user making transfer
      * -3. Execute transfer
      * -4. after validations completed, and money transferred, we need to create Transaction object and save/return it
-     *
      */
     @Override
     public Transaction makeTransfer(Account sender, Account receiver, BigDecimal amount, Date creationDate, String message) {
-        validateAccount(sender, receiver);
-        checkAccountOwnership(sender, receiver);
-        executeBalanceAndUpdateIfRequired(amount, sender, receiver);
-        // create transaction, use @allArgsConstructor
-        Transaction transaction = new Transaction(sender.getId(), receiver.getId(), amount, message, creationDate);
-        transactionRepository = new TransactionRepository();
-        return transactionRepository.saveTransaction(transaction);
+        if (!underConstruction) {
+            validateAccount(sender, receiver);
+            checkAccountOwnership(sender, receiver);
+            executeBalanceAndUpdateIfRequired(amount, sender, receiver);
+        /*
+        after all validations are completed, and money is transferred, we need to create Transaction object and save/return it
+         */
+
+            Transaction transaction = Transaction.builder().amount(amount)
+                    .sender(sender.getId()).receiver(receiver.getId())
+                    .creationDate(creationDate).message(message).build();
+
+            return transactionRepository.saveTransaction(transaction);
+        } else {
+            throw new UnderConstructionException("App is under construction, try again later");
+        }
     }
+
 
     /**
      * Get All transactions, after transfer was made
+     *
      * @return
      */
     @Override
     public List<Transaction> findAllTransactions() {
         return transactionRepository.findAllTransactions();
+    }
+
+
+    /**
+     * Find account by ID in the DB, and return account. Injected dependency AccountRepository
+     *
+     * @param id
+     * @return
+     */
+    private Account findAccountByID(UUID id) {
+        return accountRepository.findById(id);
+    }
+
+    /**
+     *
+     */
+    @Override
+    public List<Transaction> lastTransactionsList() {
+        //we want to list latest 10 transaction
+        return transactionRepository.lastTransactions();
+
+    }
+
+    public List<Transaction> findTransactionListById(UUID id) {
+        return transactionRepository.findTransactionListById(id);
+
     }
 
 
@@ -95,6 +134,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * Check if sender has enough balance in their account, remove balance and set new balance for their account. Add and Set new balance for receiver account.
+     *
      * @param amount
      * @param sender
      * @param receiver
@@ -112,31 +152,5 @@ public class TransactionServiceImpl implements TransactionService {
     private boolean checkSenderBalance(Account sender, BigDecimal amount) {
         return sender.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) >= 0;
     }
-
-    /**
-     * Find account by ID in the DB, and return account. Injected dependency AccountRepository
-     * @param id
-     * @return
-     */
-    private Account findAccountByID(UUID id) {
-        return accountRepository.findById(id);
-    }
-
-    /**
-     * Find transaction by sender id, and reciever id, and return transaction
-     * @param sender
-     * @param receiver
-     * @return
-     */
-    public Transaction findTransactionByIDs(UUID sender, UUID receiver) {
-        return transactionRepository.findById(sender, receiver);
-    }
-    @Override
-    public List<Transaction> lastTransactionsList() {
-        //we want to list latest 10 transaction
-        return transactionRepository.lastTransactions();
-
-    }
-
 
 }

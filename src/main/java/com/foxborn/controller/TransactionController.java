@@ -9,9 +9,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.Date;
+import java.util.UUID;
 
 @AllArgsConstructor
 @Controller
@@ -48,6 +50,17 @@ public class TransactionController {
         return "redirect:/make-transfer";
     }
 
+    /**
+     * this method is for a button 'Account Transaction'
+     */
+    @GetMapping("/transaction/{id}")
+    public String getTransaction(@PathVariable("id") UUID id, Model model){
 
+        System.out.println("id = " + id);
+        //get list of transactions based on id and return model attr
 
+       model.addAttribute("transactions", transactionService.findTransactionListById(id));
+
+        return "transaction/transactions";
+    }
 }
