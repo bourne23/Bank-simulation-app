@@ -45,4 +45,12 @@ public class AccountServiceImpl implements AccountService {
         account.setAccountStatus(AccountStatus.DELETED);
 
     }
+
+    /**
+     *  Created this method to implement  'postMakeTransfer'
+     */
+    @Override
+    public Account retrieveByID(UUID uuid) {
+        return accountRepository.findById(uuid);
+    }
 }

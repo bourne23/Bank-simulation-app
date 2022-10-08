@@ -1,5 +1,6 @@
 package com.foxborn.controller;
 
+import com.foxborn.model.Account;
 import com.foxborn.model.Transaction;
 import com.foxborn.service.AccountService;
 import com.foxborn.service.TransactionService;
@@ -7,6 +8,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import java.util.Date;
 
 @AllArgsConstructor
 @Controller
@@ -27,5 +32,22 @@ public class TransactionController {
 
         return "transaction/make-transfer";
     }
+
+    //TASK
+    //write a post method, that takes transaction object from the method above,
+    //complete the make transfer and return the same page.
+    @PostMapping("/transfer")
+    public String postMakeTransfer(@ModelAttribute("transaction") Transaction transaction,Model model){
+
+        //I have UUID but I need to provide Account to make transfer method.
+        Account sender = accountService.retrieveByID(transaction.getSender());
+        Account receiver = accountService.retrieveByID(transaction.getReceiver());
+
+        transactionService.makeTransfer(sender,receiver,transaction.getAmount(),new Date(),transaction.getMessage());
+
+        return "redirect:/make-transfer";
+    }
+
+
 
 }
